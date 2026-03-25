@@ -1,9 +1,11 @@
-import { mockSavedRecipes } from "@/lib/mockData";
+import { useSavedRecipes } from "@/hooks/useLocalStore";
 import RecipeCard from "@/components/RecipeCard";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 
 const SavedRecipes = () => {
+  const { saved } = useSavedRecipes();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -14,13 +16,13 @@ const SavedRecipes = () => {
           </div>
         </motion.div>
 
-        {mockSavedRecipes.length === 0 ? (
+        {saved.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground font-body text-lg">No saved recipes yet. Start exploring!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {mockSavedRecipes.map((recipe, i) => (
+            {saved.map((recipe, i) => (
               <RecipeCard key={recipe.id} recipe={recipe} index={i} />
             ))}
           </div>

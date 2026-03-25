@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import RecipeDetails from "./pages/RecipeDetails";
 import SavedRecipes from "./pages/SavedRecipes";
 import MyReviews from "./pages/MyReviews";
+import MealPlanner from "./pages/MealPlanner";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/recipe/:id" element={<RecipeDetails />} />
             <Route path="/saved" element={<SavedRecipes />} />
             <Route path="/reviews" element={<MyReviews />} />
+            <Route path="/meal-planner" element={<MealPlanner />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
