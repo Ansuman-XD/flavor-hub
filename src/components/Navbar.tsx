@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Search, Heart, Star, User, LogOut, Menu, X } from "lucide-react";
+import { ChefHat, Search, Heart, Star, User, LogOut, Menu, X, CalendarDays } from "lucide-react";
 import { useState } from "react";
 
 const Navbar = () => {
@@ -17,6 +17,7 @@ const Navbar = () => {
 
   const navItems = [
     { to: "/dashboard", label: "Recipes", icon: Search },
+    { to: "/meal-planner", label: "Planner", icon: CalendarDays },
     { to: "/saved", label: "Saved", icon: Heart },
     { to: "/reviews", label: "Reviews", icon: Star },
     { to: "/profile", label: "Profile", icon: User },

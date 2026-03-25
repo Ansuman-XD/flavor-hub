@@ -1,9 +1,11 @@
-import { mockUserReviews } from "@/lib/mockData";
+import { useUserReviews } from "@/hooks/useLocalStore";
 import { Star, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const MyReviews = () => {
+  const { reviews } = useUserReviews();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -14,15 +16,15 @@ const MyReviews = () => {
           </div>
         </motion.div>
 
-        {mockUserReviews.length === 0 ? (
+        {reviews.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground font-body text-lg">No reviews yet. Try some recipes first!</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {mockUserReviews.map((review, i) => (
+            {reviews.map((review, i) => (
               <motion.div
-                key={review.recipeId}
+                key={review.recipeId + review.date}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}

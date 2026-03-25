@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { getRecipeDetail } from "@/lib/mockData";
+import { getRecipeDetail, mockRecipes } from "@/lib/mockData";
+import { useSavedRecipes, useUserReviews } from "@/hooks/useLocalStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Clock, Star, Heart, Flame, Drumstick, Wheat, Droplets } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -11,11 +13,15 @@ const RecipeDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const recipe = getRecipeDetail(id || "");
-  const [saved, setSaved] = useState(false);
+  const baseRecipe = mockRecipes.find((r) => r.id === id);
+  const { toggleSave, isSaved } = useSavedRecipes();
+  const { addReview } = useUserReviews();
+  const { user } = useAuth();
+  const saved = baseRecipe ? isSaved(baseRecipe.id) : false;
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
 
-  if (!recipe) {
+  if (!recipe || !baseRecipe) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -27,7 +33,7 @@ const RecipeDetails = () => {
   }
 
   const handleSave = () => {
-    setSaved(!saved);
+    toggleSave(baseRecipe);
     toast({ title: saved ? "Removed from saved" : "Recipe saved! ❤️" });
   };
 
@@ -36,6 +42,14 @@ const RecipeDetails = () => {
       toast({ title: "Please select a rating", variant: "destructive" });
       return;
     }
+    addReview({
+      recipeId: baseRecipe.id,
+      recipeTitle: baseRecipe.title,
+      recipeImage: baseRecipe.image,
+      rating: userRating,
+      comment: reviewText,
+      date: new Date().toISOString().split("T")[0],
+    });
     toast({ title: "Review submitted! Thanks! 🌟" });
     setReviewText("");
     setUserRating(0);
