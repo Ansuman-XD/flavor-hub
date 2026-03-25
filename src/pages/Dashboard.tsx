@@ -1,11 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { mockRecipes } from "@/lib/mockData";
 import RecipeCard from "@/components/RecipeCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Clock, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [query, setQuery] = useState("");
@@ -16,11 +17,33 @@ const Dashboard = () => {
   const [maxTime, setMaxTime] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
-  const perPage = 8;
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const perPage = 12;
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(t);
+  }, [query]);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return mockRecipes
+      .filter((r) => r.title.toLowerCase().includes(q))
+      .slice(0, 8);
   }, [query]);
 
   const filtered = useMemo(() => {
@@ -56,18 +79,19 @@ const Dashboard = () => {
             What shall we cook today?
           </h1>
           <p className="text-muted-foreground font-body text-lg">
-            Explore recipes from around the world
+            Explore {mockRecipes.length}+ recipes from around the world
           </p>
         </motion.div>
 
-        {/* Search */}
-        <div className="max-w-2xl mx-auto mb-8">
+        {/* Search with Suggestions */}
+        <div className="max-w-2xl mx-auto mb-8" ref={searchRef}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               placeholder="Search recipes..."
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              onChange={(e) => { setQuery(e.target.value); setPage(1); setShowSuggestions(true); }}
+              onFocus={() => query.trim() && setShowSuggestions(true)}
               className="pl-12 pr-12 h-12 text-base rounded-xl font-body"
             />
             <Button
@@ -78,6 +102,53 @@ const Dashboard = () => {
             >
               <SlidersHorizontal className="h-5 w-5" />
             </Button>
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute z-50 top-full mt-1 w-full bg-card border border-border rounded-xl shadow-lg overflow-hidden"
+              >
+                {suggestions.map((recipe) => (
+                  <button
+                    key={recipe.id}
+                    onClick={() => {
+                      setShowSuggestions(false);
+                      navigate(`/recipe/${recipe.id}`);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-left"
+                  >
+                    <img
+                      src={recipe.image}
+                      alt={recipe.title}
+                      className="h-10 w-10 rounded-lg object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-sm font-semibold text-foreground truncate">
+                        {recipe.title}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground font-body">
+                        <span className="flex items-center gap-0.5">
+                          <Clock className="h-3 w-3" /> {recipe.cookingTime}m
+                        </span>
+                        <span>{recipe.cuisine}</span>
+                        <span className="capitalize text-herb">{recipe.dietType}</span>
+                        <span className="flex items-center gap-0.5">
+                          <Star className="h-3 w-3 fill-golden text-golden" /> {recipe.rating}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                <button
+                  onClick={() => { setShowSuggestions(false); }}
+                  className="w-full px-4 py-2 text-sm font-body text-primary hover:bg-muted transition-colors text-center border-t border-border"
+                >
+                  See all {filtered.length} results
+                </button>
+              </motion.div>
+            )}
           </div>
         </div>
 
@@ -92,7 +163,7 @@ const Dashboard = () => {
               <SelectTrigger className="w-[140px] font-body"><SelectValue placeholder="Cuisine" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Cuisines</SelectItem>
-                {["Italian", "Indian", "Japanese", "Mediterranean", "Chinese", "Thai", "Korean", "American"].map((c) => (
+                {["Italian", "Indian", "Japanese", "Mediterranean", "Chinese", "Thai", "Korean", "American", "Mexican", "French"].map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>
